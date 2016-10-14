@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">FootbaLife</string>
+
+    <!--Tab title of Twitter -->
+    <string name="twitter_tab_title">Twitter</string>
+
+    <string name="twitter_test_message">Twitter Tab</string>
+    <string name="league_table_test_message">League Table Tab</string>
+
+    <!-- Tab title of League table -->
+    <string name="league_table_tab_title">League Table</string>
+</resources>
