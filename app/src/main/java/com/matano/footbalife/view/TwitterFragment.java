@@ -7,6 +7,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +16,12 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.matano.footbalife.R;
+import com.matano.footbalife.TweetsAdapter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -34,6 +41,10 @@ public class TwitterFragment extends Fragment
     Twitter mTwitter;
     User mUser;
     Toast mToast;
+    RecyclerView mRecyclerView;
+    TweetsAdapter recycleViewAdapter;
+    RecyclerView.LayoutManager recycleViewLayoutManager;
+    List<Status> twitterStatuses = new ArrayList<>();
     private final String TAG = TwitterFragment.class.getSimpleName();
 
 
@@ -59,9 +70,6 @@ public class TwitterFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        initTwitterSDK();
-
-
     }
 
     @Override
@@ -69,7 +77,21 @@ public class TwitterFragment extends Fragment
                              Bundle savedInstanceState)
     {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_twitter, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_twitter, container, false);
+
+
+            mRecyclerView = (RecyclerView) rootView.findViewById(R.id.twitter_RecycleView);
+            recycleViewLayoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setLayoutManager(recycleViewLayoutManager);
+            recycleViewAdapter = new TweetsAdapter(twitterStatuses);
+            mRecyclerView.setAdapter(recycleViewAdapter);
+
+            initTwitterSDK();
+
+//            Toast.makeText(getContext(), "Failed to get statuses" , Toast.LENGTH_LONG).show();
+
+
+        return rootView;
     }
 
     public void initTwitterSDK()
@@ -116,14 +138,15 @@ public class TwitterFragment extends Fragment
      * Created by M.Matano on 15-Oct-16.
      */
 
-    public  class TwitterConnection extends AsyncTask <Configuration , Void, User>
+    public  class TwitterConnection extends AsyncTask <Configuration , Void, List<Status>>
     {
         private final String TAG = TwitterConnection.class.getSimpleName();
 
         @Override
-        protected User doInBackground(Configuration ...params)
+        protected List<twitter4j.Status> doInBackground(Configuration ...params)
         {
             TwitterFactory mTwitterFactory;
+            List<twitter4j.Status> statuses;
             try
             {
                 mTwitterFactory = new TwitterFactory(params[0]);
@@ -135,14 +158,36 @@ public class TwitterFragment extends Fragment
             catch (TwitterException te)
             {
                 Log.e(TAG, "failed to verify credentials of" + mUser.getScreenName());
+                return null;
             }
 
-            return mUser;
+            statuses = getStatuses(mTwitter);
+
+            return statuses;
         }
 
         @Override
-        protected void onPostExecute(User user)
+        protected void onPostExecute(List<twitter4j.Status> statuses)
         {
+            recycleViewAdapter.updateTwitterUI(statuses);
+            Log.i(TAG, "onPostExecute: notify the adapter");
         }
+
+        private List<twitter4j.Status> getStatuses(Twitter twitter)
+        {
+
+            try
+            {
+                List<twitter4j.Status> statusList = twitter.getHomeTimeline();
+                Log.v(TAG, "Got hometimeline" + statusList.toString());
+                return statusList;
+            }
+            catch (TwitterException te)
+            {
+                Log.e(TAG, "Couldn't get Statuses" + te.getErrorMessage());
+                return null;
+            }
+        }
+
     }
 }
