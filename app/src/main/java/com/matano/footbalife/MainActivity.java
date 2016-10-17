@@ -16,10 +16,6 @@ public class MainActivity extends AppCompatActivity
     //This is our viewPager
     private ViewPager viewPager;
 
-    //Our Consumer Key and secret
-    private final String CONSUMER_KEY = "nmwzf6O6F13sNBVb30mATNNZI";
-    private final String CONSUMER_SECRET = "0vyLd66iK4D2aXTcG9rXuGuNgStbe3r0mEiDH0RwOxJR95KuEi";
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {

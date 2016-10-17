@@ -9,4 +9,12 @@
 
     <!-- Tab title of League table -->
     <string name="league_table_tab_title">League Table</string>
+
+    <!-- Consumer key -->
+    <string name="consumer_key">nmwzf6O6F13sNBVb30mATNNZI</string>
+    <string name="consumer_secret">0vyLd66iK4D2aXTcG9rXuGuNgStbe3r0mEiDH0RwOxJR95KuEi</string>
+
+    <!-- Access token-->
+    <string name="access_token">786289782573772802-DRDUUcGK8VD5beTKEaMd2cBCgWF1Fel</string>
+    <string name="access_token_secret">2oaFLv7XJ5I42824e9KlEgd7GiwllYhZhl0Yltv0jSA94</string>
 </resources>
