@@ -102,6 +102,8 @@ public class TwitterFragment extends Fragment
             ConfigurationBuilder builder = new ConfigurationBuilder();
             builder.setOAuthConsumerKey(getString(R.string.consumer_key));
             builder.setOAuthConsumerSecret(getString(R.string.consumer_secret));
+
+
             builder.setOAuthAccessToken(getString(R.string.access_token));
             builder.setOAuthAccessTokenSecret(getString(R.string.access_token_secret));
 
