@@ -17,11 +17,11 @@ import android.widget.Toast;
 
 import com.matano.footbalife.R;
 import com.matano.footbalife.TweetsAdapter;
+import com.matano.footbalife.model.Tweet;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -44,8 +44,9 @@ public class TwitterFragment extends Fragment
     RecyclerView mRecyclerView;
     TweetsAdapter recycleViewAdapter;
     RecyclerView.LayoutManager recycleViewLayoutManager;
-    List<Status> twitterStatuses = new ArrayList<>();
+    List<Tweet> mTweetList = new ArrayList<>();
     private final String TAG = TwitterFragment.class.getSimpleName();
+    List<twitter4j.Status> statuses;
 
 
 
@@ -83,7 +84,7 @@ public class TwitterFragment extends Fragment
             mRecyclerView = (RecyclerView) rootView.findViewById(R.id.twitter_RecycleView);
             recycleViewLayoutManager = new LinearLayoutManager(getContext());
             mRecyclerView.setLayoutManager(recycleViewLayoutManager);
-            recycleViewAdapter = new TweetsAdapter(twitterStatuses);
+            recycleViewAdapter = new TweetsAdapter(mTweetList);
             mRecyclerView.setAdapter(recycleViewAdapter);
 
             initTwitterSDK();
@@ -102,8 +103,6 @@ public class TwitterFragment extends Fragment
             ConfigurationBuilder builder = new ConfigurationBuilder();
             builder.setOAuthConsumerKey(getString(R.string.consumer_key));
             builder.setOAuthConsumerSecret(getString(R.string.consumer_secret));
-
-
             builder.setOAuthAccessToken(getString(R.string.access_token));
             builder.setOAuthAccessTokenSecret(getString(R.string.access_token_secret));
 
@@ -111,6 +110,8 @@ public class TwitterFragment extends Fragment
 
             TwitterConnection connection = new TwitterConnection();
             connection.execute(configuration);
+
+
 
         }
         else // Else show network error toast
@@ -140,15 +141,14 @@ public class TwitterFragment extends Fragment
      * Created by M.Matano on 15-Oct-16.
      */
 
-    public  class TwitterConnection extends AsyncTask <Configuration , Void, List<Status>>
+    public  class TwitterConnection extends AsyncTask <Configuration , Void, Void>
     {
         private final String TAG = TwitterConnection.class.getSimpleName();
 
         @Override
-        protected List<twitter4j.Status> doInBackground(Configuration ...params)
+        protected Void doInBackground(Configuration ...params)
         {
             TwitterFactory mTwitterFactory;
-            List<twitter4j.Status> statuses;
             try
             {
                 mTwitterFactory = new TwitterFactory(params[0]);
@@ -165,14 +165,19 @@ public class TwitterFragment extends Fragment
 
             statuses = getStatuses(mTwitter);
 
-            return statuses;
+            for (twitter4j.Status status : statuses)
+            {
+                mTweetList.add(new Tweet(status));
+            }
+
+            return null;
         }
 
         @Override
-        protected void onPostExecute(List<twitter4j.Status> statuses)
+        protected void onPostExecute(Void aVoid)
         {
-            recycleViewAdapter.updateTwitterUI(statuses);
-            Log.i(TAG, "onPostExecute: notify the adapter");
+            recycleViewAdapter.updateTwitterUI(mTweetList);
+            Log.v(TAG, "Updated twitterUI");
         }
 
         private List<twitter4j.Status> getStatuses(Twitter twitter)
@@ -181,7 +186,6 @@ public class TwitterFragment extends Fragment
             try
             {
                 List<twitter4j.Status> statusList = twitter.getHomeTimeline();
-                Log.v(TAG, "Got hometimeline" + statusList.toString());
                 return statusList;
             }
             catch (TwitterException te)
@@ -191,5 +195,8 @@ public class TwitterFragment extends Fragment
             }
         }
 
+
+
     }
+
 }

@@ -12,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.matano.footbalife.model.Tweet;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +21,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 
+import twitter4j.MediaEntity;
 import twitter4j.Status;
 
 /**
@@ -27,19 +30,19 @@ import twitter4j.Status;
 
 public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder>
 {
-    List<Status> mStatuses;
+    List<Tweet> mTweets;
     final String TAG = TweetsAdapter.class.getSimpleName();
 
-    //When object created we give the list of statuses
-    public TweetsAdapter(List<Status> statuses)
+    //When object created we give the list of tweets
+    public TweetsAdapter(List<Tweet> tweets)
     {
-        mStatuses = statuses;
+        mTweets = tweets;
     }
 
     @Override //The size of the list Array
     public int getItemCount()
     {
-        return mStatuses.size();
+        return mTweets.size();
     }
 
     //Called by the layout manager. Sets the view of the tweet layout not the textView.
@@ -55,14 +58,21 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
     @Override
     public void onBindViewHolder(TweetsAdapter.ViewHolder holder, int position)
     {
-        holder.usernameView.setText(mStatuses.get(position).getUser().getName());
-        holder.userHandleView.setText("@" + mStatuses.get(position).getUser().getScreenName());
-        holder.tweetText.setText(mStatuses.get(position).getText());
-        holder.mDownloadUserProfilePic = new DownloadUserProfilePic(
-                mStatuses.get(position).getUser().getProfileImageURL(),
-                holder);
-        holder.mDownloadUserProfilePic.execute();
+        holder.usernameView.setText(mTweets.get(position).getUserName());
+        holder.userHandleView.setText(mTweets.get(position).getUserHandle());
+        holder.tweetText.setText(mTweets.get(position).getTweetText());
+        holder.dw = new DownloadUserProfileImage(holder,
+                mTweets.get(position).getUserProfilePicUrl());
+        holder.dw.execute();
+        if (mTweets.get(position).isHasPhoto())
+        {
+            holder.tw = new DownloadTweetPic(holder,
+                    mTweets.get(position).getTweetPicUrl());
+            holder.tw.execute();
+        }
 
+        else
+            holder.tweetPic.setVisibility(View.INVISIBLE);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder
@@ -72,7 +82,9 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
         public TextView userHandleView;
         public TextView tweetText;
         public ImageView userProfilePic;
-        DownloadUserProfilePic mDownloadUserProfilePic;
+        public ImageView tweetPic;
+        DownloadUserProfileImage dw;
+        DownloadTweetPic tw;
 
         public ViewHolder(View itemView)
         {
@@ -83,13 +95,68 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
             userHandleView = (TextView) itemView.findViewById(R.id.username_handle_textview);
             tweetText = (TextView) itemView.findViewById(R.id.text_tweetView);
             userProfilePic = (ImageView) itemView.findViewById(R.id.user_profileImage);
+            tweetPic = (ImageView) itemView.findViewById(R.id.tweet_imageView);
         }
     }
 
-    public void updateTwitterUI(List<Status> statuses)
+    public void updateTwitterUI(List<Tweet> tweets)
     {
-        mStatuses = statuses;
+        mTweets = tweets;
         notifyDataSetChanged();
+    }
+
+    public static class DownloadUserProfileImage extends AsyncTask<Void, Void, Void>
+    {
+        private ViewHolder vh;
+        private String url;
+        private Bitmap bitmap;
+
+        public DownloadUserProfileImage(ViewHolder vh , String url)
+        {
+            this.vh = vh;
+            this.url = url;
+        }
+
+        @Override
+        protected Void doInBackground(Void[] params)
+        {
+            bitmap = getImageBitmap(url);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid)
+        {
+            vh.userProfilePic.setImageBitmap(bitmap);
+            Log.v("DownloadedUserPro", " updated User Profile");
+        }
+    }
+
+    public static class DownloadTweetPic extends AsyncTask<Void, Void, Void>
+    {
+        private ViewHolder vh;
+        private String url;
+        private Bitmap bitmap;
+
+        public DownloadTweetPic(ViewHolder vh , String url)
+        {
+            this.vh = vh;
+            this.url = url;
+        }
+
+        @Override
+        protected Void doInBackground(Void[] params)
+        {
+            bitmap = getImageBitmap(url);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid)
+        {
+            vh.tweetPic.setImageBitmap(bitmap);
+            Log.v("DownloadedTweetPic", " updated tweetPic");
+        }
     }
 
     private static Bitmap getImageBitmap(String url) {
@@ -109,32 +176,4 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
         return bm;
     }
 
-
-    /**
-     * Created by M.Matano on 18-Oct-16.
-     */
-
-    public static class DownloadUserProfilePic extends AsyncTask<Void, Void, Bitmap>
-    {
-        private String url;
-        private ViewHolder vh;
-
-        public DownloadUserProfilePic(String url, ViewHolder vh)
-        {
-            this.url = url;
-            this.vh = vh;
-        }
-
-        @Override
-        protected Bitmap doInBackground(Void[] params)
-        {
-            return TweetsAdapter.getImageBitmap(url);
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap result)
-        {
-            vh.userProfilePic.setImageBitmap(result);
-        }
-    }
 }
