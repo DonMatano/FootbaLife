@@ -41,12 +41,10 @@ public class Tweet
     {
         mStatus = status;
         mUser = status.getUser();
-        Log.v(TAG, "User is " + mUser);
         mTweetText = status.getText();
         mUserProfilePicUrl = mUser.getProfileImageURL();
         getTweetPhotoUrlAndSethasPhoto();
         mUserName = mUser.getName();
-        Log.v(TAG, "Username is " + mUserName);
         mUserHandle = "@" + mUser.getScreenName();
         mRetweets = status.getRetweetCount();
         mFavourites = status.getFavoriteCount();

@@ -1,5 +1,6 @@
 package com.matano.footbalife;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -12,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.matano.footbalife.model.Tweet;
 
 import java.io.BufferedInputStream;
@@ -31,12 +33,14 @@ import twitter4j.Status;
 public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder>
 {
     List<Tweet> mTweets;
+    Context mContext;
     final String TAG = TweetsAdapter.class.getSimpleName();
 
     //When object created we give the list of tweets
-    public TweetsAdapter(List<Tweet> tweets)
+    public TweetsAdapter(List<Tweet> tweets, Context context)
     {
         mTweets = tweets;
+        mContext = context;
     }
 
     @Override //The size of the list Array
@@ -61,18 +65,24 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
         holder.usernameView.setText(mTweets.get(position).getUserName());
         holder.userHandleView.setText(mTweets.get(position).getUserHandle());
         holder.tweetText.setText(mTweets.get(position).getTweetText());
-        holder.dw = new DownloadUserProfileImage(holder,
-                mTweets.get(position).getUserProfilePicUrl());
-        holder.dw.execute();
+        Glide.with(mContext)
+                .load(mTweets.get(position).getUserProfilePicUrl())
+                .override(50, 50)
+                .into(holder.userProfilePic);
+
+        //If tweet has a pic
         if (mTweets.get(position).isHasPhoto())
         {
-            holder.tw = new DownloadTweetPic(holder,
-                    mTweets.get(position).getTweetPicUrl());
-            holder.tw.execute();
+            Glide.with(mContext)
+                    .load(mTweets.get(position).getTweetPicUrl())
+                    .into(holder.tweetPic);
         }
-
         else
-            holder.tweetPic.setVisibility(View.INVISIBLE);
+        {
+            //make sure Glide doesn't load anything into this view until told otherwise
+            Glide.clear(holder.tweetPic);
+            holder.tweetPic.setImageDrawable(null);
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder
@@ -83,8 +93,6 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
         public TextView tweetText;
         public ImageView userProfilePic;
         public ImageView tweetPic;
-        DownloadUserProfileImage dw;
-        DownloadTweetPic tw;
 
         public ViewHolder(View itemView)
         {
@@ -103,77 +111,6 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
     {
         mTweets = tweets;
         notifyDataSetChanged();
-    }
-
-    public static class DownloadUserProfileImage extends AsyncTask<Void, Void, Void>
-    {
-        private ViewHolder vh;
-        private String url;
-        private Bitmap bitmap;
-
-        public DownloadUserProfileImage(ViewHolder vh , String url)
-        {
-            this.vh = vh;
-            this.url = url;
-        }
-
-        @Override
-        protected Void doInBackground(Void[] params)
-        {
-            bitmap = getImageBitmap(url);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid)
-        {
-            vh.userProfilePic.setImageBitmap(bitmap);
-            Log.v("DownloadedUserPro", " updated User Profile");
-        }
-    }
-
-    public static class DownloadTweetPic extends AsyncTask<Void, Void, Void>
-    {
-        private ViewHolder vh;
-        private String url;
-        private Bitmap bitmap;
-
-        public DownloadTweetPic(ViewHolder vh , String url)
-        {
-            this.vh = vh;
-            this.url = url;
-        }
-
-        @Override
-        protected Void doInBackground(Void[] params)
-        {
-            bitmap = getImageBitmap(url);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid)
-        {
-            vh.tweetPic.setImageBitmap(bitmap);
-            Log.v("DownloadedTweetPic", " updated tweetPic");
-        }
-    }
-
-    private static Bitmap getImageBitmap(String url) {
-        Bitmap bm = null;
-        try {
-            URL aURL = new URL(url);
-            URLConnection conn = aURL.openConnection();
-            conn.connect();
-            InputStream is = conn.getInputStream();
-            BufferedInputStream bis = new BufferedInputStream(is);
-            bm = BitmapFactory.decodeStream(bis);
-            bis.close();
-            is.close();
-        } catch (IOException e) {
-            Log.e("Method getImageBitmap", "Error getting bitmap", e);
-        }
-        return bm;
     }
 
 }

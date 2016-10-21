@@ -84,7 +84,7 @@ public class TwitterFragment extends Fragment
             mRecyclerView = (RecyclerView) rootView.findViewById(R.id.twitter_RecycleView);
             recycleViewLayoutManager = new LinearLayoutManager(getContext());
             mRecyclerView.setLayoutManager(recycleViewLayoutManager);
-            recycleViewAdapter = new TweetsAdapter(mTweetList);
+            recycleViewAdapter = new TweetsAdapter(mTweetList, getContext());
             mRecyclerView.setAdapter(recycleViewAdapter);
 
             initTwitterSDK();
@@ -154,7 +154,6 @@ public class TwitterFragment extends Fragment
                 mTwitterFactory = new TwitterFactory(params[0]);
                 mTwitter = mTwitterFactory.getInstance();
                 mUser = mTwitter.verifyCredentials();
-                Log.v(TAG, "Successfully verified credentials of " + mUser.getScreenName());
 
             }
             catch (TwitterException te)
@@ -177,7 +176,6 @@ public class TwitterFragment extends Fragment
         protected void onPostExecute(Void aVoid)
         {
             recycleViewAdapter.updateTwitterUI(mTweetList);
-            Log.v(TAG, "Updated twitterUI");
         }
 
         private List<twitter4j.Status> getStatuses(Twitter twitter)
@@ -190,7 +188,6 @@ public class TwitterFragment extends Fragment
             }
             catch (TwitterException te)
             {
-                Log.e(TAG, "Couldn't get Statuses" + te.getErrorMessage());
                 return null;
             }
         }
